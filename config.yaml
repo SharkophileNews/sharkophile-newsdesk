@@ -1,0 +1,191 @@
+# Sharkophile Newsdesk configuration.
+# Secrets (API keys, passwords) never go in this file — they come from
+# environment variables / GitHub Actions secrets. See README.md.
+
+site:
+  url: https://www.sharkophile.com
+  name: Sharkophile
+  timezone: America/New_York
+  # WordPress user ID for the byline. 2 = "Sharkophile Staff" on the live site.
+  # Leave null to use whichever user owns the application password.
+  author_id: 2
+  # "draft" (default) or "pending" (WordPress "Pending Review" queue).
+  post_status: draft
+  # Older Sharkophile posts embed the lead image at the top of the body as well
+  # as setting the featured image. Keep true to match that layout.
+  embed_image_in_content: true
+  # Which SEO fields to fill. "genesis" matches the site's Genesis framework;
+  # requires the companion mu-plugin (wordpress/sharkophile-newsdesk.php) so the
+  # fields are writable over the REST API. Other options: yoast, rankmath,
+  # jetpack, none. The excerpt is always set and drives social cards.
+  seo_plugin: genesis
+
+run:
+  max_drafts_per_run: 3
+  # Ignore feed items older than this.
+  max_age_hours: 48
+  # Minimum triage score (0-10) for a story to be written up.
+  min_score: 6
+  # Don't write two stories in the same category in one run unless they score >= this.
+  diversity_override_score: 9
+  # Revise a draft once if the fact-check finds problems.
+  auto_revise: true
+  # Optional: let the drafting model run a few web searches to find the primary
+  # source (study DOI, agency release). Costs extra per search.
+  web_research: true
+  web_research_max_searches: 3
+
+models:
+  triage: claude-haiku-4-5-20251001
+  writer: claude-opus-5-5
+  fact_check: claude-sonnet-5-5
+
+images:
+  provider: openai          # openai | none
+  model: gpt-image-2
+  size: 1536x1024
+  quality: medium           # low | medium | high
+  # Output written to WordPress
+  output_format: jpeg
+  output_width: 1200
+  caption: Illustration generated with AI for Sharkophile.
+
+alerts:
+  # Any combination. Each one is skipped if its secret isn't set.
+  slack: true      # env SLACK_WEBHOOK_URL
+  email: true      # env SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EDITOR_EMAIL
+  webhook: false   # env ALERT_WEBHOOK_URL (generic JSON POST, e.g. Zapier/Make/Discord-compatible)
+  # Also send a short "nothing new today" note when a run produces no drafts.
+  notify_on_empty_run: false
+
+sources:
+  # Bing News RSS search. Simple queries work best; boolean OR returns nothing.
+  bing_queries:
+    - shark
+    - sharks
+    - shark study
+    - shark research
+    - shark conservation
+    - great white shark
+    - shark sighting
+    - shark bite
+    - shark fishing
+    - whale shark
+    - hammerhead shark
+    - megalodon
+    - Shark Week
+    - SharkFest
+    - shark movie
+    - OCEARCH
+  feeds:
+    - name: ScienceDaily — Fish
+      url: https://www.sciencedaily.com/rss/plants_animals/fish.xml
+      require_keywords: true
+    - name: ScienceDaily — Marine Biology
+      url: https://www.sciencedaily.com/rss/plants_animals/marine_biology.xml
+      require_keywords: true
+    - name: ScienceDaily — Endangered Animals
+      url: https://www.sciencedaily.com/rss/plants_animals/endangered_animals.xml
+      require_keywords: true
+    - name: Mongabay
+      url: https://news.mongabay.com/feed/
+      require_keywords: true
+    # Add more feeds here, e.g. a university press office or NOAA Fisheries.
+
+  # An item must mention at least one of these (title or summary) when
+  # require_keywords is true. Bing items are always keyword-checked.
+  keywords:
+    - shark
+    - sharks
+    - megalodon
+    - elasmobranch
+    - chondrichthyan
+    - sawfish
+    - guitarfish
+    - wedgefish
+    - stingray
+    - manta ray
+    - chimaera
+    - ocearch
+
+  # Obvious false positives — dropped before any model sees them.
+  exclude_patterns:
+    - San Jose Sharks
+    - '\bSharks\b.*\b(NHL|hockey|puck|goalie|power play)\b'
+    - Shark Tank
+    - SharkNinja
+    - Shark Ninja
+    - Cronulla
+    - '\bSharks\b.*\b(rugby|URC|Currie Cup|Super Rugby)\b'
+    - loan shark
+    - card shark
+    - pool shark
+    - Baby Shark Dance
+    - '\bshark (vacuum|robot vacuum|steam mop|hair dryer|FlexStyle)\b'
+    - Miami Sharks
+    - Sharks FC
+
+  # Sources we never use as the basis for a story (still fine as discovery).
+  blocked_domains:
+    - msn.com
+    - dailymail.co.uk
+    - thesun.co.uk
+    - nypost.com
+    - express.co.uk
+    - mirror.co.uk
+  # Preferred when several outlets cover the same story.
+  preferred_domains:
+    - eurekalert.org
+    - sciencedaily.com
+    - phys.org
+    - theconversation.com
+    - noaa.gov
+    - fisheries.noaa.gov
+    - floridamuseum.ufl.edu
+    - nature.com
+    - science.org
+    - pnas.org
+    - royalsocietypublishing.org
+    - frontiersin.org
+    - mongabay.com
+    - apnews.com
+    - reuters.com
+    - npr.org
+    - bbc.com
+    - bbc.co.uk
+    - nationalgeographic.com
+    - smithsonianmag.com
+    - newscientist.com
+    - abc.net.au
+    - theguardian.com
+    - nytimes.com
+    - washingtonpost.com
+    - ocearch.org
+    - discovery.com
+    - variety.com
+    - hollywoodreporter.com
+    - deadline.com
+
+wordpress:
+  # Categories the agent may assign (slugs). Featured/Sponsored/Products/Videos
+  # are intentionally excluded — those are editor decisions.
+  allowed_categories:
+    - news
+    - science
+    - biology
+    - ecology
+    - conservation
+    - attacks
+    - entertainment
+    - events
+    - fishing
+    - diving
+    - odd
+    - web
+    - profile
+    - experts
+  default_category: news
+  max_categories: 3
+  max_tags: 6
+  # Allow the agent to create tags that don't exist yet.
+  create_new_tags: true

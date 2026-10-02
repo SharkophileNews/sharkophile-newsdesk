@@ -1,0 +1,6 @@
+requests>=2.31
+PyYAML>=6.0
+Pillow>=10.0
+beautifulsoup4>=4.12
+# Better article-text extraction; the newsdesk falls back to BeautifulSoup without it.
+trafilatura>=1.12
