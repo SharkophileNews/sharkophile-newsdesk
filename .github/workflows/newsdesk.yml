@@ -1,0 +1,104 @@
+name: Sharkophile newsdesk
+
+on:
+  schedule:
+    # GitHub cron runs in UTC. 11:10 and 19:10 UTC = 7:10 a.m. and 3:10 p.m. Eastern
+    # during daylight time (6:10 a.m. / 2:10 p.m. in winter). Edit to taste.
+    - cron: "10 11 * * *"
+    - cron: "10 19 * * *"
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "What to run"
+        type: choice
+        options: [run, check, discover]
+        default: run
+      dry_run:
+        description: "Dry run (write previews only — no WordPress drafts, no alerts)"
+        type: boolean
+        default: false
+      max_drafts:
+        description: "Max drafts this run (blank = config default)"
+        type: string
+        default: ""
+      url:
+        description: "Optional: write up this specific article URL"
+        type: string
+        default: ""
+
+permissions:
+  contents: write   # to commit state/newsdesk_state.json back after each run
+
+concurrency:
+  group: sharkophile-newsdesk
+  cancel-in-progress: false
+
+jobs:
+  newsdesk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Self-test
+        run: python -m unittest discover -s tests -t .
+
+      - name: Newsdesk
+        id: newsdesk
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          ALERT_WEBHOOK_URL: ${{ secrets.ALERT_WEBHOOK_URL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          EDITOR_EMAIL: ${{ secrets.EDITOR_EMAIL }}
+          # Inputs are passed through env (never interpolated into the script) for safety.
+          INPUT_COMMAND: ${{ inputs.command }}
+          INPUT_DRY_RUN: ${{ inputs.dry_run }}
+          INPUT_MAX: ${{ inputs.max_drafts }}
+          INPUT_URL: ${{ inputs.url }}
+        run: |
+          cmd="${INPUT_COMMAND:-run}"
+          args=("$cmd")
+          if [ "$cmd" = "run" ]; then
+            [ "$INPUT_DRY_RUN" = "true" ] && args+=("--dry-run")
+            [[ "$INPUT_MAX" =~ ^[0-9]+$ ]] && args+=("--max" "$INPUT_MAX")
+            [[ "$INPUT_URL" =~ ^https?:// ]] && args+=("--url" "$INPUT_URL")
+          fi
+          python -m newsdesk "${args[@]}"
+
+      - name: Save state
+        if: always() && (inputs.command == '' || inputs.command == 'run') && inputs.dry_run != true
+        run: |
+          git config user.name "sharkophile-newsdesk"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add state/newsdesk_state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Newsdesk state update [skip ci]"
+            git pull --rebase --autostash || true
+            git push
+          fi
+
+      - name: Keep run outputs (draft previews, alert, usage)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsdesk-${{ github.run_id }}
+          path: out/
+          retention-days: 14
+          if-no-files-found: ignore
