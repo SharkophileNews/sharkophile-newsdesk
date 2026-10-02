@@ -175,3 +175,15 @@ class StateTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SecretCleaning(unittest.TestCase):
+    def test_forgives_paste_mistakes(self):
+        from newsdesk.config import clean_secret
+        self.assertEqual(clean_secret("ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY\nsk-ant-abc123\n"), "sk-ant-abc123")
+        self.assertEqual(clean_secret("OPENAI_API_KEY", 'OPENAI_API_KEY="sk-proj-xyz"'), "sk-proj-xyz")
+        self.assertEqual(clean_secret("OPENAI_API_KEY", "export OPENAI_API_KEY=sk-proj-xyz"), "sk-proj-xyz")
+        self.assertEqual(clean_secret("WP_APP_PASSWORD", "  abcd efgh ijkl mnop  "), "abcd efgh ijkl mnop")
+        self.assertEqual(clean_secret("WP_USER", "Sharkophile News"), "Sharkophile News")
+        self.assertIsNone(clean_secret("ANTHROPIC_API_KEY", "ANTHROPIC_API_KEY"))
+        self.assertIsNone(clean_secret("X", "   "))

@@ -4,11 +4,28 @@ from __future__ import annotations
 
 import copy
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+
+def clean_secret(name: str, value: str | None) -> str | None:
+    """Forgive common paste mistakes in secrets: surrounding quotes, a leading
+    'NAME=' / 'export NAME=', the secret's own name pasted as an extra line,
+    and stray blank lines. Returns the longest remaining line."""
+    if not value:
+        return None
+    candidates = []
+    for line in value.replace("\r", "\n").split("\n"):
+        line = line.strip()
+        line = re.sub(rf"^(export\s+)?{re.escape(name)}\s*[:=]\s*", "", line, flags=re.IGNORECASE)
+        line = line.strip().strip('"').strip("'").strip()
+        if line and line.upper() != name.upper():
+            candidates.append(line)
+    return max(candidates, key=len) if candidates else None
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -98,8 +115,7 @@ class Secrets:
         e = env if env is not None else os.environ
 
         def g(name: str) -> str | None:
-            value = (e.get(name) or "").strip()
-            return value or None
+            return clean_secret(name, e.get(name))
 
         port = g("SMTP_PORT")
         editors = [x.strip() for x in (g("EDITOR_EMAIL") or "").split(",") if x.strip()]
