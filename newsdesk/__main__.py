@@ -57,9 +57,15 @@ def cmd_check(cfg, args) -> int:
     line(bool(s.anthropic_api_key), "ANTHROPIC_API_KEY set")
     line(bool(s.openai_api_key) or cfg["images"]["provider"] == "none", "OPENAI_API_KEY set (images)")
     line(bool(s.wp_user and s.wp_app_password), "WP_USER and WP_APP_PASSWORD set")
-    channels = [n for n, good in (("Slack", s.slack_webhook_url), ("email", s.smtp_host and s.editor_email),
-                                   ("webhook", s.alert_webhook_url)) if good]
-    line(bool(channels), "Editor alert channel configured", ", ".join(channels) or "none")
+    alerts = cfg["alerts"]
+    channels = [n for n, on, good in (("Slack", alerts.get("slack"), s.slack_webhook_url),
+                                       ("email", alerts.get("email"), s.smtp_host and s.editor_email),
+                                       ("webhook", alerts.get("webhook"), s.alert_webhook_url)) if on and good]
+    wanted = [n for n in ("slack", "email", "webhook") if alerts.get(n)]
+    if wanted:
+        line(bool(channels), "Editor alert channel configured", ", ".join(channels) or "none")
+    else:
+        print("• Editor alerts switched off in config.yaml — check Posts → Drafts in WordPress")
 
     wp = WordPress(cfg.site_url, s.wp_user, s.wp_app_password, http)
     try:

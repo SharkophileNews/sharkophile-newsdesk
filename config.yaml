@@ -52,8 +52,9 @@ images:
 
 alerts:
   # Any combination. Each one is skipped if its secret isn't set.
-  slack: true      # env SLACK_WEBHOOK_URL
-  email: true      # env SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EDITOR_EMAIL
+  # Slack and email are switched off for now; new drafts appear in WordPress under Posts → Drafts.
+  slack: false     # env SLACK_WEBHOOK_URL
+  email: false     # env SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EDITOR_EMAIL
   webhook: false   # env ALERT_WEBHOOK_URL (generic JSON POST, e.g. Zapier/Make/Discord-compatible)
   # Also send a short "nothing new today" note when a run produces no drafts.
   notify_on_empty_run: false
