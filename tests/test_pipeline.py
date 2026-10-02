@@ -29,6 +29,16 @@ class PipelineTest(unittest.TestCase):
         for name in ("config.yaml", "STYLE_GUIDE.md"):
             shutil.copy(ROOT / name, self.tmp / name)
         self.cfg = load_config(self.tmp / "config.yaml", env=ENV)
+        # The live config has alerts off; most tests exercise the Slack path.
+        self.cfg.data["alerts"]["slack"] = True
+
+    def test_alerts_off_sends_nothing(self):
+        self.cfg.data["alerts"].update(slack=False, email=False, webhook=False)
+        http = FakeHttp()
+        summary = self.desk(http).run()
+        self.assertEqual(len(summary["drafts"]), 1)
+        self.assertEqual(summary["alerts_sent"], [])
+        self.assertEqual(http.slack, [])
 
     def tearDown(self):
         shutil.rmtree(self.tmp, ignore_errors=True)
