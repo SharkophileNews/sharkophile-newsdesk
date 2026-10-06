@@ -69,7 +69,10 @@ class FakeClaude:
         if payload.get("tools"):
             text = ("- Primary source: Journal of Fixture Biology paper led by Dr. Mara Quill "
                     "(https://doi.org/10.0000/fixture.2026.001)\n")
-            return self._msg(payload, [{"type": "text", "text": text, "citations": [
+            search_block = {"type": "web_search_tool_result", "tool_use_id": "srvtoolu_1", "content": [
+                {"type": "web_search_result", "url": "https://www.nbclosangeles.example/news/shark-hearing/",
+                 "title": "Sharks hear from far away", "encrypted_content": "x", "page_age": "Oct 1, 2026"}]}
+            return self._msg(payload, [search_block, {"type": "text", "text": text, "citations": [
                 {"type": "web_search_result_location", "url": "https://doi.org/10.0000/fixture.2026.001",
                  "title": "Blacktip hearing range", "cited_text": "blacktip sharks responded to sounds"}]}],
                 server_tool_use={"web_search_requests": 1})
@@ -285,6 +288,10 @@ class FakeHttp:
             return self.claude.handle(json.loads(data))
         if p.netloc == "api.openai.com" and p.path == "/v1/images/generations":
             self.openai_calls.append(json.loads(data))
+            if getattr(self, "openai_no_credits", False):
+                return FakeResponse(429, json_data={"error": {
+                    "message": "You have no credits remaining. Add credits to continue using the API.",
+                    "type": "insufficient_quota", "code": "credit_balance_exhausted"}})
             if self._png is None:
                 self._png = tiny_png()
             return FakeResponse(json_data={"data": [{"b64_json": base64.b64encode(self._png).decode()}]})

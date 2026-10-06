@@ -47,13 +47,13 @@ You'll need: WordPress admin access to sharkophile.com, a GitHub account, an Ant
 
 ### Step 1 — WordPress
 
-1. **Newsdesk account.** Done: the **Sharkophile News** account (Administrator) exists and has an application password named "Sharkophile News". Editor would be enough if you'd rather limit it. If you ever need a new application password: *Users → Profile → Application Passwords*.
+1. **Newsdesk account.** The newsdesk signs in as **Sharkophile Staff** (Editor), the account that also appears as the byline. Its application password is named "Newsdesk". To replace it, open *Users → All Users → Sharkophile Staff → Edit → Application Passwords* (not your own profile — a password only works for the account it was made on).
 2. **Install the companion plugin — required on this host.** Sharkophile's host (Bluehost-style Apache) strips the standard login header from API requests, so WordPress never sees the application password. The plugin fixes that. In wp-admin go to *Plugins → Add New → Upload Plugin*, choose **`sharkophile-newsdesk-plugin.zip`**, click *Install Now*, then *Activate*. (Alternative: copy `wordpress/sharkophile-newsdesk.php` into `wp-content/mu-plugins/` with the host's File Manager.) It:
    - accepts the newsdesk's backup login header when the host strips the normal one (HTTPS only; WordPress still checks the application password as usual),
    - lets the newsdesk set the Genesis SEO title and meta description over the API,
    - shows a **"🦈 Newsdesk review notes"** box on each draft's edit screen (fact-check result, flagged issues, SEO checklist, sources),
    - adds NewsArticle structured data to posts (skipped automatically if Yoast or Rank Math is active).
-3. **Byline.** `config.yaml` → `site.author_id: 2` is the existing *Sharkophile Staff* account. Set it to `28` to publish under *Sharkophile News*, or `null` for whichever account the application password belongs to.
+3. **Byline.** `config.yaml` → `site.author_id: 2` is the *Sharkophile Staff* account.
 
 ### Step 2 — API keys
 
@@ -75,7 +75,7 @@ You'll need: WordPress admin access to sharkophile.com, a GitHub account, an Ant
    |---|---|
    | `ANTHROPIC_API_KEY` | your Claude key |
    | `OPENAI_API_KEY` | your OpenAI key |
-   | `WP_USER` | `Sharkophile News` (exactly, with the space) |
+   | `WP_USER` | `Sharkophile Staff` (exactly, with the space) |
    | `WP_APP_PASSWORD` | the application password (spaces are fine) |
    | `SLACK_WEBHOOK_URL` | (if using Slack) |
    | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `EDITOR_EMAIL` | (if using email) |
@@ -122,6 +122,8 @@ Per draft, at published API prices: about **$0.30–$0.70** for Claude (writing 
 
 - **`check` says WordPress ignored the login (`rest_not_logged_in`):** the host is stripping the `Authorization` header and the companion plugin isn't active — activate it under *Plugins* (Step 1). Alternatively add `SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1` near the top of the site's `.htaccess`.
 - **`check` says the password is incorrect (401 `incorrect_password` / `invalid_username`):** re-check the `WP_USER` and `WP_APP_PASSWORD` secrets, or create a new application password. Security plugins/firewalls can also block the REST API or GitHub's servers — allow `/wp-json/` for authenticated users.
+- **"No featured image" in the review notes:** image generation failed; the note says why. "No credits remaining" means the OpenAI account needs credit (platform.openai.com → Settings → Billing). Add an image by hand for that draft; later drafts will get one again.
+- **A secret shows as `***` in the check output, or Claude says `invalid x-api-key`:** the secret's value is wrong — often the secret's *name* was pasted into the value box. Edit the secret and paste only the key.
 - **"SEO fields not writable":** the companion plugin isn't active (check *Plugins*, or *Plugins → Must-Use* if you copied the file).
 - **"not enough readable source text":** every source was paywalled, script-rendered or blocked by robots.txt. The newsdesk won't write from headlines alone. Paste a readable URL via *Run workflow → url* if you still want it.
 - **No drafts for a while:** run **discover**. If it lists nothing, Bing may be throttling GitHub's servers; add a few RSS feeds under `sources.feeds`.

@@ -10,7 +10,7 @@ from pathlib import Path
 from newsdesk.config import ROOT, load_config
 from newsdesk.pipeline import Newsdesk
 
-from .fakes import FakeClaude, FakeHttp, FakeWordPress, bad_quote_draft, good_draft
+from .fakes import QUOTE, FakeClaude, FakeHttp, FakeWordPress, bad_quote_draft, good_draft
 
 NOW = datetime(2026, 10, 1, 22, 0, tzinfo=timezone.utc)
 
@@ -222,6 +222,54 @@ class PipelineTest(unittest.TestCase):
         self.desk(http).run()
         content = http.wp.posts[0]["content"]
         self.assertIn('<em>Source: <a href="https://www.fixture-university.edu/news/shark-hearing">', content)
+
+    # --- fixes from the first live run (Oct. 6) ---------------------------------
+    def test_links_from_web_search_results_are_accepted(self):
+        claude = FakeClaude()
+        d = good_draft()
+        d["body"][1]["text"] += (' <a href="https://www.nbclosangeles.example/news/shark-hearing/">NBC '
+                                 'Los Angeles reported</a> the same finding.')
+        claude.writer_responses = [d]
+        http = FakeHttp(claude=claude)
+        summary = self.desk(http).run()
+        self.assertEqual(len(claude.writer_calls()), 1, "no pointless revision")
+        self.assertFalse(any("Links come from" in w for w in summary["drafts"][0]["warnings"]))
+        self.assertIn("nbclosangeles.example", http.wp.posts[0]["content"])
+
+    def test_invented_link_still_rejected(self):
+        claude = FakeClaude()
+        d = good_draft()
+        d["body"][1]["text"] += ' <a href="https://made-up.example.net/story">a report</a>.'
+        claude.writer_responses = [d, d]
+        http = FakeHttp(claude=claude)
+        summary = self.desk(http).run()
+        self.assertTrue(any("Links come from" in w for w in summary["drafts"][0]["warnings"]))
+
+    def test_pull_quote_blocks_are_quote_checked(self):
+        claude = FakeClaude()
+        fake = good_draft()
+        fake["body"][2] = {"type": "quote", "text": "Sharks are swimming ears and this changes everything we know,",
+                           "items": [], "attribution": "Dr. Mara Quill"}
+        real = good_draft()
+        real["body"][2] = {"type": "quote", "text": QUOTE + ",", "items": [], "attribution": "Dr. Mara Quill"}
+        claude.writer_responses = [fake, real]
+        http = FakeHttp(claude=claude)
+        summary = self.desk(http).run()
+        self.assertEqual(len(claude.writer_calls()), 2, "fabricated pull quote triggers a rewrite")
+        self.assertFalse(any("Quotes match" in w for w in summary["drafts"][0]["warnings"]))
+        content = http.wp.posts[0]["content"]
+        self.assertIn(f"<p>{QUOTE}.</p>", content.replace("’", "'"))   # trailing comma -> period
+
+    def test_image_failure_is_saved_for_the_editor(self):
+        http = FakeHttp()
+        http.openai_no_credits = True
+        summary = self.desk(http).run()
+        post = http.wp.posts[0]
+        self.assertNotIn("featured_media", post)
+        report = json.loads(post["meta"]["_newsdesk_report"])
+        self.assertTrue(any("No featured image" in w and "no credits remaining" in w for w in report["warnings"]))
+        self.assertIn("image_prompt", report)
+        self.assertEqual(summary["drafts"][0]["warnings"], report["warnings"])
 
 
 if __name__ == "__main__":

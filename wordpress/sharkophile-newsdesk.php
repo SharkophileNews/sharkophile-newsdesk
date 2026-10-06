@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Sharkophile Newsdesk Support
  * Description: Companion to the automated newsdesk. Lets the newsdesk sign in with its application password on hosts that strip the Authorization header, makes SEO title/description fields writable over the REST API (Genesis, Yoast, Rank Math), shows the newsdesk's review notes to editors on the post screen, and outputs NewsArticle structured data on posts.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Requires at least: 5.6
  * Author: Sharkophile
  * License: GPL-2.0-or-later
@@ -20,7 +20,7 @@ defined( 'ABSPATH' ) || exit;
 if ( defined( 'SHARKOPHILE_NEWSDESK_LOADED' ) ) {
 	return;
 }
-define( 'SHARKOPHILE_NEWSDESK_LOADED', '1.2.0' );
+define( 'SHARKOPHILE_NEWSDESK_LOADED', '1.3.0' );
 define( 'SHARKOPHILE_NEWSDESK_FILE', __FILE__ );
 
 /**
@@ -248,6 +248,13 @@ if ( ! function_exists( 'sharkophile_newsdesk_metabox' ) ) {
 			'major_issues' => '🔴 Major issues — verify before publishing',
 		);
 
+		if ( ! empty( $report['warnings'] ) && is_array( $report['warnings'] ) ) {
+			echo '<div style="background:#fcf0e3;border-left:4px solid #dba617;padding:6px 10px;margin:6px 0 10px"><strong>Needs attention</strong><ul style="margin:4px 0 0 1em;list-style:disc">';
+			foreach ( $report['warnings'] as $w ) {
+				echo '<li>' . esc_html( (string) $w ) . '</li>';
+			}
+			echo '</ul></div>';
+		}
 		echo '<p><strong>Fact-check:</strong> ' . esc_html( isset( $labels[ $verdict ] ) ? $labels[ $verdict ] : $verdict ) . '</p>';
 		if ( ! empty( $fact['issues'] ) && is_array( $fact['issues'] ) ) {
 			echo '<ul style="margin-left:1em;list-style:disc">';

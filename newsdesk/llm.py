@@ -133,12 +133,25 @@ class Claude:
         }
         data = self._post(payload)
         notes, cited = [], []
+
+        def add(url: str, title: str = "", cited_text: str = "") -> None:
+            if url and url not in [x["url"] for x in cited]:
+                cited.append({"url": url, "title": title, "cited_text": cited_text})
+
         for block in data.get("content", []):
+            if block.get("type") == "web_search_tool_result":
+                # Every page the search actually returned is a real URL the writer may link.
+                for r in block.get("content") or []:
+                    if isinstance(r, dict) and r.get("type") == "web_search_result":
+                        add(r.get("url", ""), r.get("title", ""))
+                continue
             if block.get("type") != "text":
                 continue
             notes.append(block.get("text", ""))
             for c in block.get("citations") or []:
-                if c.get("url") and c["url"] not in [x["url"] for x in cited]:
-                    cited.append({"url": c["url"], "title": c.get("title", ""),
-                                  "cited_text": c.get("cited_text", "")})
+                add(c.get("url", ""), c.get("title", ""), c.get("cited_text", ""))
+                # keep the quoted snippet when a result URL was added before it was cited
+                for x in cited:
+                    if x["url"] == c.get("url") and not x["cited_text"]:
+                        x["cited_text"] = c.get("cited_text", "")
         return "".join(notes).strip(), cited

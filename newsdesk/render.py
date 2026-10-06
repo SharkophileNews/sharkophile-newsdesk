@@ -95,9 +95,19 @@ def bullet_list(items: list[str]) -> str:
 
 def quote(text: str, attribution: str = "") -> str:
     cite = f"<cite>{sanitize_inline(attribution)}</cite>" if attribution.strip() else ""
+    body = sanitize_inline(_standalone_quote(text))
     return ("<!-- wp:quote -->\n<blockquote class=\"wp-block-quote\"><!-- wp:paragraph -->\n"
-            f"<p>{sanitize_inline(text)}</p>\n<!-- /wp:paragraph -->{cite}</blockquote>\n"
+            f"<p>{body}</p>\n<!-- /wp:paragraph -->{cite}</blockquote>\n"
             "<!-- /wp:quote -->")
+
+
+def _standalone_quote(text: str) -> str:
+    """A pull quote stands alone: drop wrapping quotation marks and turn the
+    trailing comma of an inline quote ('…anything,') into a period."""
+    t = (text or "").strip().strip("\"“”").strip()
+    if t.endswith(","):
+        t = t[:-1].rstrip() + "."
+    return t
 
 
 def image(media_id: int, src: str, alt: str, caption: str) -> str:
@@ -149,7 +159,10 @@ def source_line(sources: list[dict]) -> str:
 def blocks_plain_text(blocks: list[dict]) -> str:
     lines = []
     for b in blocks:
-        if b.get("text"):
+        if b.get("type") == "quote" and b.get("text"):
+            # Wrap pull quotes in quotation marks so the word-for-word quote check sees them.
+            lines.append("“" + plain_text(_standalone_quote(b["text"])).rstrip(".") + "”")
+        elif b.get("text"):
             prefix = "## " if b.get("type") == "heading" else ""
             lines.append(prefix + plain_text(b["text"]))
         for i in b.get("items") or []:

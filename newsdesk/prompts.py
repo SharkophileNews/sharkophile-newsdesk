@@ -154,10 +154,12 @@ def writer_system(style_guide: str) -> str:
         "2. Write entirely in your own words. Never reuse a source's sentences or distinctive "
         "phrasing outside quotation marks.\n"
         "3. Quotes must be copied character-for-character from a source, attributed to the "
-        "speaker (and 'told <Outlet>' if from another outlet's interview). Max three.\n"
+        "speaker (and 'told <Outlet>' if from another outlet's interview). Max three. Put quotes "
+        "inside paragraphs in house style (“…,” Name said.). Use a `quote` block at most once, "
+        "for a standout line, and put only the quoted words in it (no quotation marks).\n"
         "4. Link the primary source (study DOI, agency release, official statement) inline with "
         "descriptive anchor text, and link the outlet you relied on most. Use only URLs that "
-        "appear in the source material.\n"
+        "appear in the source material or the web research results.\n"
         "5. If a related Sharkophile story is provided and genuinely related, link it once, "
         "naturally, in the context section.\n"
         "6. Don't add the 'Source:' line or an image — the system adds those.\n"
@@ -223,6 +225,8 @@ attributed to the wrong person; claims stated more strongly than the source supp
 ("proves" vs "suggests"); invented study details; links that don't appear in the sources.
 Flag as MINOR: missing context the source provides, awkward hedging, style-guide
 violations, an unclear attribution.
+The italic "Source:" line, the featured image and its caption are added automatically
+after this check, so never flag them as missing.
 Do not flag well-established general background (e.g. "sharks are fish", "great
 whites are found worldwide") unless it is wrong. Be specific and brief."""
 

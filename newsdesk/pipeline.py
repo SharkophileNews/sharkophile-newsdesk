@@ -369,10 +369,10 @@ class Newsdesk:
         try:
             img = images.generate(self.cfg["images"], self.cfg.secrets.openai_api_key, self.http,
                                   draft["image"]["prompt"])
-            return img, "" if img else "No image generated (image provider disabled or no API key)"
+            return img, "" if img else "No featured image: image generation is switched off or OPENAI_API_KEY is missing"
         except Exception as exc:
             log.warning("Image generation failed: %s", exc)
-            return None, f"Image generation failed: {exc}"
+            return None, f"No featured image — add one before publishing. {exc}"
 
     def publish(self, story: Story, draft: dict) -> dict:
         cfg, site = self.cfg, self.cfg["site"]
@@ -420,8 +420,6 @@ class Newsdesk:
             "_newsdesk_sources": json.dumps(draft.get("sources", [])),
             "_newsdesk_focus_keyword": draft["focus_keyword"],
             "_newsdesk_run_id": self.run_id,
-            "_newsdesk_report": json.dumps({"seo": report.as_dict(), "fact_check": fact,
-                                            "editor_notes": draft.get("editor_notes", "")}),
         }
         for k, v in newsdesk_meta.items():
             if self.registered_meta is None or k in self.registered_meta:
@@ -457,6 +455,12 @@ class Newsdesk:
         tag_ids, created = self.wp.resolve_tags(draft["tags"], cfg["wordpress"]["create_new_tags"])
         if created:
             result["warnings"].append("New tags created: " + ", ".join(created))
+        if self.registered_meta is None or "_newsdesk_report" in self.registered_meta:
+            # Shown to the editor in the "Newsdesk review notes" box on the edit screen.
+            meta["_newsdesk_report"] = json.dumps({
+                "warnings": result["warnings"], "seo": report.as_dict(), "fact_check": fact,
+                "editor_notes": draft.get("editor_notes", ""), "image_prompt": draft["image"]["prompt"],
+                "revised": draft.get("_revised", False), "run_id": self.run_id})
         payload = {
             "title": draft["headline"], "content": content, "excerpt": draft["meta_description"],
             "slug": slug, "status": site.get("post_status", "draft"), "categories": cat_ids,

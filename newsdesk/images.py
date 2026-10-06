@@ -55,7 +55,12 @@ def generate(cfg_images: dict, api_key: str | None, http, scene: str) -> ImageRe
     resp = http.post(OPENAI_IMAGES_URL, timeout=240, data=json.dumps(payload),
                      headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"})
     if resp.status_code != 200:
-        raise HttpError(f"OpenAI images {resp.status_code}: {resp.text[:400]}", resp.status_code, resp.text)
+        message = resp.text[:400]
+        try:
+            message = resp.json()["error"]["message"]
+        except Exception:
+            pass
+        raise HttpError(f"OpenAI said ({resp.status_code}): {message}", resp.status_code, resp.text)
     item = (resp.json().get("data") or [{}])[0]
     if item.get("b64_json"):
         raw = base64.b64decode(item["b64_json"])
