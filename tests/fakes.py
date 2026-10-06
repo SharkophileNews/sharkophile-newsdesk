@@ -56,6 +56,7 @@ class FakeClaude:
     def __init__(self):
         self.calls: list[dict] = []
         self.writer_responses: list[dict] = []
+        self.feature_responses: list[dict] = []
         self.fact_responses: list[dict] = []
         self.triage_response: dict | None = None
         self.reject_structured = False
@@ -80,6 +81,8 @@ class FakeClaude:
             data = self.triage_response or default_triage(payload)
         elif system.startswith("You are a staff writer"):
             data = self.writer_responses.pop(0) if self.writer_responses else good_draft()
+        elif system.startswith("You are Sharkophile's features writer"):
+            data = self.feature_responses.pop(0) if self.feature_responses else good_feature_draft()
         elif system.startswith("You are Sharkophile's copy chief"):
             data = self.fact_responses.pop(0) if self.fact_responses else {
                 "verdict": "pass", "issues": [], "summary": "All claims supported."}
@@ -101,6 +104,12 @@ class FakeClaude:
 
     def writer_calls(self):
         return [c for c in self.calls if c.get("system", "").startswith("You are a staff writer")]
+
+    def feature_writer_calls(self):
+        return [c for c in self.calls if c.get("system", "").startswith("You are Sharkophile's features writer")]
+
+    def research_calls(self):
+        return [c for c in self.calls if c.get("tools")]
 
 
 def default_triage(payload: dict) -> dict:
@@ -185,6 +194,22 @@ def good_draft() -> dict:
         "editor_notes": "Confirm the number of tagged sharks against the paper.",
         "confidence": "high",
     }
+
+
+def good_feature_draft() -> dict:
+    """A planned feature built from the hearing study (served at the DOI URL in feature tests)."""
+    d = good_draft()
+    d["headline"] = "How sharks hear: what the blacktip study tells us"
+    d["seo_title"] = "How sharks hear: blacktip hearing explained"
+    d["slug"] = "how-sharks-hear-blacktip-hearing"
+    d["focus_keyword"] = "how sharks hear"
+    d["body"][0]["text"] = d["body"][0]["text"].replace(
+        "https://www.fixture-university.edu/news/shark-hearing", "https://doi.org/10.0000/fixture.2026.001")
+    d["body"].insert(1, {"type": "heading", "text": "How far can sharks hear?", "items": [], "attribution": ""})
+    d["categories"] = ["biology", "science"]
+    d["sources"] = [{"title": "Blacktip hearing range", "publisher": "Journal of Fixture Biology",
+                     "url": "https://doi.org/10.0000/fixture.2026.001", "role": "study"}]
+    return d
 
 
 def bad_quote_draft() -> dict:

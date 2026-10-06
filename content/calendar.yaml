@@ -1,0 +1,240 @@
+# Sharkophile features calendar — Oct. 7 to Dec. 5, 2026 (the 60-day plan).
+#
+# The daily newsdesk run drafts each entry `features.lead_days` (2) days before its
+# date and files it in Posts → Drafts. The editor publishes Tuesday and Thursday
+# mornings. To change a piece, edit its brief here before it's drafted; to keep the
+# newsdesk away from one you'll write yourself, add `newsdesk: false`.
+#
+# Fields
+#   date           publish day (YYYY-MM-DD); one entry per date
+#   pillar         guide | sharkofiles | legends | pop-culture | seasonal
+#   title          working title (the writer picks the final headline)
+#   brief          what the piece must cover — the writer and researcher follow it
+#   focus_keyword  the search phrase to target (optional)
+#   related        searches for Sharkophile stories to link (optional)
+#   categories     suggested category slugs (optional; writer may add one)
+#   hub            true = a hub page that links and summarizes our own stories
+#
+# No affiliate links in any feature.
+
+features:
+  - date: 2026-10-08
+    pillar: legends
+    title: "Legendary sharks: Big Mo, Harbor Master, Black Demon and more"
+    hub: true
+    focus_keyword: legendary sharks
+    related: [Big Mo, Harbor Master, Black Demon, Old Hitler, record hammerhead]
+    brief: >
+      A hub page for Sharkophile's legendary-shark stories. For each legend, give a
+      short, fair account of the story, what is documented and what is folklore,
+      and link our full story. Keep the line between record catches, verified
+      sightings and tall tales clear. End by inviting readers to send us the
+      shark legend from their own coast.
+
+  - date: 2026-10-13
+    pillar: guide
+    title: "How to find shark teeth: where to look, when to go and what you've found"
+    focus_keyword: how to find shark teeth
+    related: [shark teeth, fossil, megalodon tooth]
+    categories: [science]
+    brief: >
+      A practical guide to hunting fossil shark teeth: well-known U.S. spots
+      (beaches, rivers and creeks) and the rules that apply there, the best tides,
+      seasons and conditions, simple gear, how to tell a tooth from a shell or
+      rock, and how to identify common species' teeth (megalodon, great white,
+      mako, tiger, sand tiger). Include collecting rules on public land and in
+      parks.
+
+  - date: 2026-10-15
+    pillar: sharkofiles
+    title: "SharkoFiles: the great white shark and its fall migration"
+    focus_keyword: great white shark migration
+    related: [great white, OCEARCH, Cape Cod]
+    categories: [biology]
+    brief: >
+      A species profile of the white shark: size, range, diet, lifespan and
+      conservation status, then its seasonal movements, especially the fall
+      shift of Northwest Atlantic white sharks from New England and Atlantic
+      Canada toward the Carolinas and Florida, as shown by tagging studies and
+      trackers such as OCEARCH. Cover what scientists still don't know.
+
+  - date: 2026-10-20
+    pillar: seasonal
+    title: "Halloween shark myths, and what's actually true"
+    focus_keyword: shark myths
+    related: [shark myths, shark bite]
+    categories: [science]
+    brief: >
+      A Halloween-timed myth-busting piece: eight to ten common scary beliefs about
+      sharks (they must keep swimming, they can smell a drop of blood from miles
+      away, they mistake people for seals, they don't get cancer, attacks are
+      rising, and similar), each with what research actually shows. Handle bite
+      statistics carefully and cite the International Shark Attack File or
+      similar authorities.
+
+  - date: 2026-10-22
+    pillar: pop-culture
+    title: "Shark movies, ranked"
+    focus_keyword: best shark movies
+    related: [shark movie, Jaws, The Meg]
+    categories: [entertainment]
+    brief: >
+      A ranked list of notable shark films from Jaws onward, mixing classics,
+      cult favorites and recent releases. For each: year, director, a one-line
+      premise, why it ranks where it does, and one note on how it portrays real
+      shark behavior. Don't reveal endings. Use critics' and box-office facts only
+      from sources.
+
+  - date: 2026-10-27
+    pillar: seasonal
+    title: "Deep-sea sharks of nightmares: goblin, cookiecutter, frilled and more"
+    focus_keyword: deep-sea sharks
+    related: [goblin shark, frilled shark, cookiecutter shark, deep sea]
+    categories: [biology]
+    brief: >
+      A Halloween-week tour of strange deep-sea sharks: goblin, cookiecutter,
+      frilled, megamouth, Greenland, dwarf lantern and others with good sources.
+      For each: where it lives, its strangest feature and how scientists study it.
+      Eerie but accurate; no exaggeration.
+
+  - date: 2026-10-29
+    pillar: sharkofiles
+    title: "SharkoFiles: the Greenland shark, the ocean's longest-lived vertebrate"
+    focus_keyword: Greenland shark
+    related: [Greenland shark]
+    categories: [biology]
+    brief: >
+      A species profile of the Greenland shark: range, size, diet, slow growth and
+      the radiocarbon research behind estimates of its very long lifespan,
+      including the uncertainty in those estimates. Cover its eye parasites,
+      fisheries bycatch, conservation status and recent research.
+
+  - date: 2026-11-03
+    pillar: guide
+    title: "Shark fishing basics: gear, rules and responsible catch and release"
+    focus_keyword: shark fishing gear
+    related: [shark fishing, catch and release]
+    categories: [fishing]
+    brief: >
+      A beginner's guide to legal, responsible shark fishing in U.S. waters:
+      licenses and permits (federal HMS permits and state rules, with Florida's
+      shore-based shark fishing permit as an example), prohibited species and how
+      to identify them, circle hooks and other required gear, and handling and
+      release practices that improve survival. Generic gear descriptions only; no
+      brands or shopping links. Readers must check current state rules.
+
+  - date: 2026-11-05
+    pillar: legends
+    title: "The biggest sharks ever caught"
+    focus_keyword: biggest shark ever caught
+    related: [record shark, world record, Big Mo, record hammerhead]
+    categories: [fishing]
+    brief: >
+      The record-setting sharks: IGFA all-tackle records for the major species, the
+      stories behind the most famous catches, and how record-keeping and
+      catch-and-release have changed. Separate verified records from claims. Link
+      Sharkophile's legends hub and related stories.
+
+  - date: 2026-11-10
+    pillar: seasonal
+    title: "Holiday gift guide for shark lovers"
+    focus_keyword: gifts for shark lovers
+    related: [gift, shark book]
+    categories: [entertainment]
+    brief: >
+      A holiday gift guide grouped by recipient (kids, divers, anglers, fossil
+      hunters, readers, people who give back): real, currently available
+      products and experiences found in research, such as books, shark-adoption
+      programs from conservation groups, aquarium memberships, tooth-hunting
+      kits and apparel whose sales support research. Link only the maker's or
+      seller's own page. No affiliate links and no prices unless a source states
+      them. Note in editor_notes that availability must be checked before
+      publishing, and that sponsor placements may be added by the editor.
+
+  - date: 2026-11-12
+    pillar: sharkofiles
+    title: "SharkoFiles: the whale shark, the biggest fish in the sea"
+    focus_keyword: whale shark facts
+    related: [whale shark]
+    categories: [biology]
+    brief: >
+      A species profile of the whale shark: size, filter feeding, range and
+      seasonal gatherings (such as Ningaloo, the Yucatán and the Philippines),
+      how researchers identify individuals by their spot patterns, threats and
+      conservation status, and responsible swim-with tourism guidelines.
+
+  - date: 2026-11-17
+    pillar: guide
+    title: "Megalodon: fact vs. fiction"
+    focus_keyword: megalodon facts
+    related: [megalodon]
+    categories: [science]
+    brief: >
+      What science knows about Otodus megalodon: when it lived, how big it likely
+      was and why size estimates keep changing, recent research on its body shape,
+      warm-bloodedness and diet, and why it went extinct. Then the fiction: why
+      it is not still alive, despite documentaries and viral claims. Cite recent
+      peer-reviewed work.
+
+  - date: 2026-11-19
+    pillar: pop-culture
+    title: "The best shark books for every age"
+    focus_keyword: best shark books
+    related: [shark book]
+    categories: [entertainment]
+    brief: >
+      A reading list in age groups (young kids, middle grade, teens, adults):
+      well-reviewed nonfiction and fiction about sharks, with author, year and a
+      one-line reason each is worth reading. Only books found in research, with
+      the publisher's page or a library or bookstore listing as the link. No
+      affiliate links.
+
+  - date: 2026-11-24
+    pillar: seasonal
+    title: "Shark gifts that give back for Black Friday and Cyber Monday"
+    focus_keyword: shark gifts that give back
+    related: [gift, conservation]
+    categories: [conservation]
+    brief: >
+      A short Black Friday–Cyber Monday piece on shark gifts whose purchase
+      supports research or conservation: species adoptions, memberships and
+      merchandise from established shark conservation and research groups.
+      Link each group's own page. No deal prices or discount claims unless a
+      source states them, no affiliate links. Link the holiday gift guide.
+
+  - date: 2026-11-26
+    pillar: sharkofiles
+    title: "SharkoFiles: the great hammerhead"
+    focus_keyword: great hammerhead shark
+    related: [hammerhead, great hammerhead]
+    categories: [biology]
+    brief: >
+      A species profile of the great hammerhead: how the cephalofoil helps it hunt
+      (including stingrays), size, range and migrations, its critically endangered
+      status, protections in U.S. waters and why it is vulnerable to capture
+      stress. Link the record hammerhead legend story.
+
+  - date: 2026-12-01
+    pillar: seasonal
+    title: "Giving Tuesday: shark conservation groups worth supporting"
+    focus_keyword: shark conservation organizations
+    related: [conservation, shark finning]
+    categories: [conservation]
+    brief: >
+      A Giving Tuesday guide to established shark research and conservation
+      groups: what each does, where it works and an example of its results, from
+      sources. Include how to check a charity (for example through charity
+      evaluators). Mention that readers can also support Sharkophile, which the
+      editor will link. No rankings by fundraising claims.
+
+  - date: 2026-12-03
+    pillar: pop-culture
+    title: "The best shark documentaries to stream"
+    focus_keyword: best shark documentaries
+    related: [documentary, Shark Week, SharkFest]
+    categories: [entertainment]
+    brief: >
+      A list of standout shark documentaries and series, old and new, with year,
+      who made it, what it covers and why it's worth watching, plus any notes on
+      accuracy. Say where it streams only if a current source states it;
+      otherwise tell readers to check their services.

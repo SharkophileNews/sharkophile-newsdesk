@@ -3,6 +3,7 @@
     python -m newsdesk run            # full run: discover, write, draft in WordPress, alert
     python -m newsdesk run --dry-run  # everything except WordPress writes and alerts
     python -m newsdesk run --url URL  # write up a specific article an editor picked
+    python -m newsdesk features       # draft planned features that are due (content/calendar.yaml)
     python -m newsdesk discover       # list today's candidate stories (no model calls)
     python -m newsdesk check          # verify credentials, permissions and site setup
 """
@@ -109,6 +110,16 @@ def cmd_check(cfg, args) -> int:
                  "" if r.status_code == 200 else f"HTTP {r.status_code}")
         except Exception as exc:
             line(False, "OpenAI API", str(exc))
+    try:
+        from datetime import date
+
+        from .features import load_calendar
+        entries = load_calendar(cfg.root / cfg["features"]["calendar"])
+        upcoming = [e for e in entries if e.date >= date.today()]
+        nxt = f"next: {upcoming[0].key} {upcoming[0].title}" if upcoming else "no upcoming entries"
+        line(True, f"Features calendar ({len(entries)} entries)", nxt)
+    except Exception as exc:
+        line(False, "Features calendar", str(exc))
     print("\nAll good." if ok else "\nFix the ✖ items above, then run again.")
     return 0 if ok else 1
 
@@ -125,6 +136,26 @@ def cmd_run(cfg, args) -> int:
         for w in d["warnings"]:
             print(f"  ⚠ {w}")
     print(f"\nOutputs: {desk.out}")
+    return 1 if summary.get("fatal") else 0
+
+
+def cmd_features(cfg, args) -> int:
+    from .features import FeatureDesk
+
+    desk = FeatureDesk(cfg, dry_run=args.dry_run)
+    if args.list:
+        for e in desk.calendar():
+            done = desk.state.features.get(e.key)
+            mark = f"drafted (post {done.get('post_id')})" if done else ("editor" if not e.newsdesk else "planned")
+            print(f"{e.key}  {e.pillar:<12} {mark:<22} {e.title}")
+        return 0
+    summary = desk.run_features(dates=args.date or None)
+    print(json.dumps({k: summary[k] for k in ("run_id", "considered", "errors", "usage")
+                      if k in summary}, indent=2))
+    for d in summary["drafts"]:
+        print(f"\n■ {d['headline']}  (planned for {d.get('planned_for')})\n  {d.get('edit_link','')}")
+        for w in d["warnings"]:
+            print(f"  ⚠ {w}")
     return 1 if summary.get("fatal") else 0
 
 
@@ -156,6 +187,10 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--dry-run", action="store_true", help="write previews locally; no WordPress writes or alerts")
     run.add_argument("--max", type=int, help="max drafts this run")
     run.add_argument("--url", action="append", help="write up this article URL (repeatable)")
+    feat = sub.add_parser("features", help="draft planned features that are due")
+    feat.add_argument("--dry-run", action="store_true", help="write previews locally; no WordPress writes")
+    feat.add_argument("--date", action="append", help="draft the calendar entry for this date now (YYYY-MM-DD)")
+    feat.add_argument("--list", action="store_true", help="show the calendar and what has been drafted")
     sub.add_parser("discover", help="list candidate stories")
     sub.add_parser("check", help="verify setup")
     ill = sub.add_parser("illustrate", help="add (or redo) the AI featured image on existing drafts")
@@ -164,7 +199,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)
     cfg = load_config(args.config)
-    return {"run": cmd_run, "discover": cmd_discover, "check": cmd_check,
+    return {"run": cmd_run, "discover": cmd_discover, "check": cmd_check, "features": cmd_features,
             "illustrate": cmd_illustrate}[args.command](cfg, args)
 
 

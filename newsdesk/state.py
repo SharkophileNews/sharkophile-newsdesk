@@ -28,6 +28,8 @@ class State:
         self.path = path
         self.seen: dict[str, str] = {}
         self.covered: list[dict] = []
+        # Planned features already drafted, keyed by calendar date (YYYY-MM-DD).
+        self.features: dict[str, dict] = {}
         self.load()
 
     def load(self) -> None:
@@ -40,6 +42,7 @@ class State:
             return
         self.seen = data.get("seen", {})
         self.covered = data.get("covered", [])
+        self.features = data.get("features", {})
 
     def save(self, now: datetime | None = None) -> None:
         now = now or datetime.now(timezone.utc)
@@ -49,8 +52,9 @@ class State:
         self.covered = [c for c in self.covered if c.get("date", "") >= cov_cut]
         self.path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self.path.with_suffix(".tmp")
-        tmp.write_text(json.dumps({"seen": self.seen, "covered": self.covered}, indent=1,
-                                  sort_keys=True), encoding="utf-8")
+        tmp.write_text(json.dumps({"seen": self.seen, "covered": self.covered,
+                                   "features": self.features}, indent=1, sort_keys=True),
+                       encoding="utf-8")
         tmp.replace(self.path)
 
     # ------------------------------------------------------------- queries
@@ -83,3 +87,11 @@ class State:
 
     def recent_headlines(self, limit: int = 40) -> list[str]:
         return [c.get("headline") or c.get("title", "") for c in self.covered[-limit:]]
+
+    def feature_done(self, key: str) -> bool:
+        return key in self.features
+
+    def mark_feature(self, key: str, post_id: int | None, headline: str,
+                     now: datetime | None = None) -> None:
+        self.features[key] = {"post_id": post_id, "headline": headline,
+                              "drafted": (now or datetime.now(timezone.utc)).isoformat()}

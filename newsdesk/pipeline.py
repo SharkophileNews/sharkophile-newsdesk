@@ -282,6 +282,11 @@ class Newsdesk:
         rc = self.cfg["run"]
         if not rc.get("web_research"):
             return "", []
+        types = [t.lower() for t in (rc.get("web_research_types") or [])]
+        stype = (story.triage.get("story_type") or "news").lower()
+        if types and stype not in types:
+            log.info("No web research for a %s story (web_research_types: %s)", stype, ", ".join(types))
+            return "", []
         try:
             return self.claude.research(
                 self.cfg["models"]["fact_check"], prompts.RESEARCH_SYSTEM,
@@ -378,7 +383,7 @@ class Newsdesk:
         cfg, site = self.cfg, self.cfg["site"]
         report: seo.Report = draft["_report"]
         fact = draft["_fact"]
-        extra_warnings: list[str] = []
+        extra_warnings: list[str] = list(draft.get("_extra_warnings", []))
         img, img_warning = self.illustrate(draft)
         if img_warning:
             extra_warnings.append(img_warning)

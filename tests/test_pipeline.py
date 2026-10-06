@@ -31,6 +31,8 @@ class PipelineTest(unittest.TestCase):
         self.cfg = load_config(self.tmp / "config.yaml", env=ENV)
         # The live config has alerts off; most tests exercise the Slack path.
         self.cfg.data["alerts"]["slack"] = True
+        # The live config drafts one story a day; these tests exercise multi-story runs.
+        self.cfg.data["run"]["max_drafts_per_run"] = 3
 
     def test_alerts_off_sends_nothing(self):
         self.cfg.data["alerts"].update(slack=False, email=False, webhook=False)
@@ -100,12 +102,12 @@ class PipelineTest(unittest.TestCase):
         state = json.loads((self.tmp / "state" / "newsdesk_state.json").read_text())
         self.assertEqual(len(state["covered"]), 1)
 
-        # Model routing: triage on Haiku, writing on Opus, checks on Sonnet
+        # Model routing: triage on Haiku, news writing and checks on Sonnet
         models = [c["model"] for c in http.claude.calls]
         self.assertEqual(models[0], "claude-haiku-4-5-20251001")
-        self.assertIn("claude-opus-5-5", models)
-        self.assertIn("claude-sonnet-5-5", models)
+        self.assertNotIn("claude-opus-5-5", models)
         writer = http.claude.writer_calls()[0]
+        self.assertEqual(writer["model"], "claude-sonnet-5-5")
         self.assertIn("output_config", writer)
         self.assertIn("HOUSE STYLE GUIDE", writer["system"])
         self.assertIn("blacktip-migration-florida", writer["messages"][0]["content"])

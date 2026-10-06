@@ -21,11 +21,13 @@ site:
   seo_plugin: genesis
 
 run:
-  max_drafts_per_run: 3
+  # One scheduled run a day (7:10 a.m. Eastern) drafts the day's single best story.
+  # Breaking news can be added any time with Run workflow → url.
+  max_drafts_per_run: 1
   # Ignore feed items older than this.
   max_age_hours: 48
   # Minimum triage score (0-10) for a story to be written up.
-  min_score: 6
+  min_score: 7
   # Don't write two stories in the same category in one run unless they score >= this.
   diversity_override_score: 9
   # Revise a draft once if the fact-check finds problems.
@@ -34,11 +36,27 @@ run:
   # source (study DOI, agency release). Costs extra per search.
   web_research: true
   web_research_max_searches: 3
+  # Only these story types get web research (it costs extra per search); others are
+  # written from the fetched coverage alone. Remove the line to research every story.
+  web_research_types: [science, conservation]
 
 models:
   triage: claude-haiku-4-5-20251001
-  writer: claude-opus-5-5
+  # Daily news is written on Sonnet (about half Opus's price); planned features,
+  # which keep earning search traffic for years, are written on Opus.
+  writer: claude-sonnet-5-5
+  feature_writer: claude-opus-5-5
   fact_check: claude-sonnet-5-5
+
+features:
+  # Planned evergreen pieces (guides, SharkoFiles profiles, legends, seasonal).
+  # Each calendar entry is drafted this many days before its date, by the daily run.
+  calendar: content/calendar.yaml
+  lead_days: 2
+  research_max_searches: 5
+  max_sources: 4
+  # Research text needed before a feature is written (characters).
+  min_material_chars: 1500
 
 images:
   provider: openai          # openai | none

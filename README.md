@@ -1,19 +1,21 @@
 # Sharkophile Newsdesk
 
-An automated news desk for **sharkophile.com**. Twice a day it finds the latest shark news (science, conservation, incidents, fishing, diving and pop culture), writes a draft in Sharkophile's house style, illustrates it, optimizes it for search, files it in WordPress as a **draft** with categories and tags, and alerts the editor. **Nothing is ever published automatically** — a human editor reviews and clicks Publish.
+An automated news desk for **sharkophile.com**. Every morning it finds the day's best shark story (science, conservation, incidents, fishing, diving and pop culture), writes a draft in Sharkophile's house style, illustrates it, optimizes it for search and files it in WordPress as a **draft** with categories and tags. The same run drafts any **planned feature** that's due from the content calendar (`content/calendar.yaml`). **Nothing is ever published automatically** — a human editor reviews and clicks Publish.
 
 ```
  Bing News + science feeds ──► dedupe & cluster ──► triage editor (Claude Haiku)
-                                                          │ picks up to 3 stories
+                                                          │ picks the day's best story
                                                           ▼
- fetch sources ─► find primary source (web search) ─► write draft (Claude Opus, STYLE_GUIDE.md)
+ fetch sources ─► find primary source (web search*) ─► write draft (Claude Sonnet, STYLE_GUIDE.md)
                                                           │
             integrity + SEO checks ◄──── fact-check (Claude Sonnet) ──► one auto-revision if needed
                                                           │
  AI illustration (OpenAI) ─► WordPress draft (image, categories, tags, SEO fields, social text)
                                                           │
-                                       Slack / email alert to the editor with Edit + Preview links
+                          optional Slack / email alert (off: editors check Posts → Drafts)
 ```
+
+\* Web research runs for science and conservation stories only. Planned features follow the same path from the content calendar, researched more deeply and written on Claude Opus.
 
 ## What's in the box
 
@@ -21,6 +23,7 @@ An automated news desk for **sharkophile.com**. Twice a day it finds the latest 
 |---|---|
 | `STYLE_GUIDE.md` | Sharkophile's house style, derived from the site's archive. It is loaded verbatim into the writer's instructions — **edit this to change how stories read**. |
 | `config.yaml` | Behavior: sources, schedule limits, models, image settings, categories, alerts. No secrets. |
+| `content/calendar.yaml` | The planned features (guides, SharkoFiles profiles, legends, seasonal pieces), one per date. |
 | `newsdesk/` | The Python program. |
 | `wordpress/sharkophile-newsdesk.php` | Small WordPress must-use plugin (see Step 1). |
 | `.github/workflows/newsdesk.yml` | Runs everything on GitHub Actions on a schedule. |
@@ -84,7 +87,7 @@ You'll need: WordPress admin access to sharkophile.com, a GitHub account, an Ant
 3. *Settings → Actions → General → Workflow permissions* → choose **Read and write permissions** (so the run can save its memory file).
 4. **Verify:** *Actions → Sharkophile newsdesk → Run workflow* → command **check**. Every line should show ✔. Then run **discover** to see today's candidate stories.
 5. **Try a dry run:** Run workflow with **Dry run** ticked. When it finishes, open the run and download the `newsdesk-…` artifact: it contains an HTML preview of each draft, the image, and the alert text — nothing touches WordPress.
-6. **Go live:** Run workflow with defaults. Drafts appear in *Posts → Drafts* and the alert arrives. From then on it runs automatically at about 7:10 a.m. and 3:10 p.m. Eastern.
+6. **Go live:** Run workflow with defaults. Drafts appear in *Posts → Drafts*. From then on it runs automatically at about 7:10 a.m. Eastern (GitHub often starts scheduled runs 15–60 minutes late).
 
 To have it write up a specific article an editor found, use *Run workflow* and paste the URL into **url**.
 
@@ -102,21 +105,33 @@ When an alert arrives:
 
 Tip: if a story type keeps coming out wrong, fix it in `STYLE_GUIDE.md` rather than editing every draft.
 
+## Planned features
+
+`content/calendar.yaml` lists one planned feature per date — evergreen guides, SharkoFiles species profiles, legends and pop culture, and seasonal pieces — each with a brief. Two days before an entry's date, the daily run researches it on the web (up to five searches), writes it on Claude Opus, fact-checks and illustrates it, and files it in *Posts → Drafts*. The review box says which day it's planned for; publish or schedule it that morning.
+
+- **Change a piece:** edit its `brief` (or `title`, `focus_keyword`, `related`) before it's drafted.
+- **Write one yourself:** add `newsdesk: false` to the entry.
+- **Draft one now:** *Actions → Sharkophile newsdesk → Run workflow*, command **features**, and put the entry's date in **feature_date** (blank drafts whatever is due).
+- **See what's planned and done:** `python -m newsdesk features --list`.
+- Features never contain affiliate links, and only link a maker's or seller's own page.
+
 ## Tuning
 
 All in `config.yaml`:
 
-- `run.max_drafts_per_run` (default 3), `run.min_score` (default 6 of 10) — volume and selectivity.
+- `run.max_drafts_per_run` (1), `run.min_score` (7 of 10) — volume and selectivity.
+- `run.web_research_types` — which story types get web research (science and conservation); delete the line to research every story.
+- `features.lead_days`, `features.research_max_searches` — how early and how deeply planned features are researched.
 - `run.max_age_hours` — how fresh stories must be.
 - `sources.bing_queries` / `sources.feeds` — what's monitored. Add a university press office or NOAA feed under `feeds`.
 - `sources.exclude_patterns` — false positives to drop (San Jose Sharks, Shark Tank, SharkNinja and friends are already there).
 - `site.post_status: pending` — use WordPress's *Pending Review* queue instead of *Draft*.
-- `models` — which Claude model plays each role. `images.quality` — `low` / `medium` / `high`.
+- `models` — which Claude model plays each role (`writer` for news, `feature_writer` for planned features). `images.quality` — `low` / `medium` / `high`.
 - The schedule lives in `.github/workflows/newsdesk.yml` (`cron` lines, in UTC).
 
 ## Cost (rough estimate)
 
-Per draft, at published API prices: about **$0.30–$0.70** for Claude (writing on Opus 5.5, fact-check and research on Sonnet 5.5, triage on Haiku 4.5, including up to three web searches at $10 per 1,000; the high end is when a draft needs a revision), plus one image at OpenAI's current rate for `gpt-image-2` at your chosen quality. At 2 runs/day × up to 3 drafts, plan on roughly $2–4 a day for Claude. Each run's exact token use is in `run.json` in the run artifact. GitHub Actions usage for this job is small (a few minutes per run).
+At published API prices, a news draft costs roughly **$0.25–$0.45** in Claude usage (writing, fact-check and research on Sonnet 5.5, triage on Haiku 4.5; web searches, at $10 per 1,000, only for science and conservation stories), and a planned feature roughly **$0.75–$1.50** (Opus 5.5 writing, up to five searches). Each adds one image at OpenAI's rate for `gpt-image-2` at your chosen quality (about $0.04 at medium). With one news story a day and two features a week, plan on about $15–20 a month for Claude and under $2 for images. Set a monthly spending limit in the Claude Console and at OpenAI. Each run's exact token use is in `run.json` in the run artifact. GitHub Actions usage for this job is small (a few minutes per run).
 
 ## Troubleshooting
 

@@ -155,9 +155,14 @@ def copied_passages(draft_text: str, source_text: str, n: int = 12) -> list[str]
 
 # ------------------------------------------------------------------ main
 
+FEATURE_WORDS = (700, 1600)
+NEWS_WORDS = (250, 900)
+
+
 def check_and_fix(draft: dict, source_text: str, site_host: str,
-                  internal_link_available: bool) -> Report:
-    """Mutates `draft` with safe fixes and returns a report."""
+                  internal_link_available: bool, kind: str = "news") -> Report:
+    """Mutates `draft` with safe fixes and returns a report. `kind` is "news" or
+    "feature" (planned evergreen pieces: longer, and not filed under News)."""
     r = Report()
     kw = (draft.get("focus_keyword") or "").strip().lower()
     draft["focus_keyword"] = kw
@@ -202,7 +207,8 @@ def check_and_fix(draft: dict, source_text: str, site_host: str,
     draft["_word_count"] = words
     paragraphs = [plain_text(b.get("text", "")) for b in blocks if b.get("type") == "paragraph"]
     first = paragraphs[0] if paragraphs else ""
-    r.add("Length 250–900 words", 250 <= words <= 900, f"{words} words", "style")
+    lo, hi = FEATURE_WORDS if kind == "feature" else NEWS_WORDS
+    r.add(f"Length {lo:,}–{hi:,} words", lo <= words <= hi, f"{words} words", "style")
     r.add("Focus keyword in first paragraph", bool(kw) and _kw_in(kw, first))
     long_paras = [p for p in paragraphs if len(p.split()) > 60]
     r.add("Paragraphs ≤ 60 words", not long_paras, f"{len(long_paras)} long paragraph(s)", "style")
@@ -230,7 +236,10 @@ def check_and_fix(draft: dict, source_text: str, site_host: str,
         r.fixes.append("Trimmed image alt text to 125 characters")
     r.add("Image alt text present", bool(alt))
     cats = draft.get("categories") or []
-    r.add("News + 1–2 topical categories", "news" in cats and 2 <= len(cats) <= 3, ", ".join(cats))
+    if kind == "feature":
+        r.add("1–3 categories", 1 <= len(cats) <= 3, ", ".join(cats))
+    else:
+        r.add("News + 1–2 topical categories", "news" in cats and 2 <= len(cats) <= 3, ", ".join(cats))
     r.add("3–6 tags", 3 <= len(draft.get("tags") or []) <= 6, ", ".join(draft.get("tags") or []))
 
     # --- integrity (fed back to the writer if they fail)

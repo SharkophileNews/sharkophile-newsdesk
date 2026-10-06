@@ -304,3 +304,85 @@ IMAGE_BRIEF_SCHEMA = {
 
 def image_brief_user(title: str, excerpt: str, body_text: str) -> str:
     return f"Headline: {title}\nSummary: {excerpt}\n\nStory:\n{body_text[:3000]}"
+
+
+# ------------------------------------------------------------------ features
+
+FEATURE_RESEARCH_SYSTEM = """You are a research assistant for Sharkophile's evergreen features.
+Using web search, gather the facts a writer needs for the assigned piece from
+authoritative sources: peer-reviewed studies, universities, museums, aquariums,
+government agencies (NOAA, state wildlife and fisheries agencies), the IUCN Red List,
+established conservation groups and major newsrooms. Report concise bullet points,
+each with the URL it came from. Prefer recent sources for science, regulations and
+anything that changes (prices, availability, streaming). Flag anything the sources
+disagree on. Never rely on content farms, AI-written listicles, shopping or affiliate
+sites, or social media posts."""
+
+
+def feature_research_user(title: str, brief: str) -> str:
+    return (f"Assignment: {title}\nBrief: {brief}\n\n"
+            "Find the facts, figures and authoritative sources this piece needs.")
+
+
+def feature_writer_system(style_guide: str) -> str:
+    return (
+        "You are Sharkophile's features writer. You write planned evergreen pieces — guides, "
+        "SharkoFiles species profiles, shark legends and pop culture, and seasonal stories — "
+        "that a human editor reviews before publishing. Follow the house style guide below for "
+        "voice, headlines, numbers, attribution, banned phrases and the handling of bite "
+        "incidents. Where the guide gives rules meant only for news (length, the news lede, "
+        "datelines), these feature rules take precedence:\n"
+        "- 800–1,400 words, with 3–6 H2 subheads that each answer something a reader would search for.\n"
+        "- Open by telling the reader what the piece covers and why it matters to them. No dateline. "
+        "Avoid 'this week', 'recently' or 'today' unless the brief is tied to a date.\n"
+        "- Lists are welcome where they help (gear, steps, species, titles); each item a full thought.\n"
+        "- Use the focus keyword naturally in the first paragraph and in one subhead.\n\n"
+        "Hard rules:\n"
+        "1. Use ONLY facts found in the numbered source material or the web research notes. If "
+        "something important isn't supported, leave it out and say so in editor_notes.\n"
+        "2. Write entirely in your own words. Never reuse a source's sentences or distinctive "
+        "phrasing outside quotation marks.\n"
+        "3. Quotes are optional; any you use must be copied character-for-character from a source "
+        "and attributed. Max three. Use a `quote` block at most once.\n"
+        "4. Link the 2–5 sources you rely on most, inline, with descriptive anchor text. Use only "
+        "URLs that appear in the source material or the web research results.\n"
+        "5. Link every related Sharkophile story provided that genuinely fits, naturally, once each "
+        "(up to eight). For a hub piece, link each one.\n"
+        "6. No affiliate links, no shopping links other than a maker's or seller's own page, no "
+        "prices or deal claims unless a source states them, and never imply Sharkophile tested a product.\n"
+        "7. Don't add the 'Source:' line or an image — the system adds those.\n"
+        "8. The headline is rendered as the H1; body headings are H2.\n\n"
+        "=== HOUSE STYLE GUIDE ===\n" + style_guide
+    )
+
+
+def feature_writer_user(*, today: str, planned_for: str, pillar: str, title: str, brief: str,
+                        focus_keyword: str, hub: bool, sources: list[dict], research_notes: str,
+                        research_citations: list[dict], related_posts: list[dict],
+                        existing_tags: list[str], allowed_categories: list[str],
+                        suggested_categories: list[str]) -> str:
+    src_parts = [f"[{s['id']}] {s.get('title','')}\nOutlet: {s.get('publisher','')}\nURL: {s['url']}\n"
+                 f"---\n{s['text']}\n" for s in sources]
+    cites = "\n".join(f"- {c['title']} — {c['url']}" + (f" (\"{c['cited_text']}\")" if c.get('cited_text') else "")
+                      for c in research_citations)
+    related = "\n".join(f"- {p['title']} — {p['link']}" for p in related_posts) or "- (none found)"
+    return (
+        f"Today is {today} (Eastern Time). This feature is planned for {planned_for}.\n\n"
+        f"Assignment ({pillar}{', hub page' if hub else ''}): {title}\n"
+        f"Brief: {brief}\n"
+        f"Focus keyword: {focus_keyword or '(choose the phrase a reader would search for)'}\n\n"
+        "=== SOURCE MATERIAL ===\n" + ("\n".join(src_parts) or "(none fetched; use the research notes)\n")
+        + f"\n=== [R] WEB RESEARCH NOTES (treat as a source; only use facts backed by the cited URLs) ===\n"
+        f"{research_notes or '(none)'}\nCited:\n{cites or '(none)'}\n"
+        f"\n=== RELATED SHARKOPHILE STORIES (internal links) ===\n{related}\n"
+        f"\n=== EXISTING TAGS (prefer these) ===\n{', '.join(existing_tags[:150])}\n"
+        f"\n=== CATEGORY SLUGS YOU MAY USE ===\n{', '.join(allowed_categories)}\n"
+        f"Suggested: {', '.join(suggested_categories) or '(your choice)'}. Choose 1–3; use 'news' only "
+        "if the piece is tied to a current event.\n\n"
+        "For `image.prompt`, describe a calm, scientifically accurate scene for an editorial "
+        "illustration (species, setting, light, composition). No people, no text, no logos, no blood, "
+        "no movie characters or book covers.\n"
+        "In `sources`, list each source you used with its real URL; role 'study' for papers, "
+        "'press_release' for institution pages, 'primary' for the main references.\n"
+        "Write the feature now."
+    )
