@@ -24,6 +24,7 @@ features:
     hub: true
     focus_keyword: legendary sharks
     related: [Big Mo, Harbor Master, Black Demon, Old Hitler, record hammerhead]
+    categories: [profile]
     brief: >
       A hub page for Sharkophile's legendary-shark stories. For each legend, give a
       short, fair account of the story, what is documented and what is folklore,
@@ -50,7 +51,7 @@ features:
     title: "SharkoFiles: the great white shark and its fall migration"
     focus_keyword: great white shark migration
     related: [great white, OCEARCH, Cape Cod]
-    categories: [biology]
+    categories: [profile, biology]
     brief: >
       A species profile of the white shark: size, range, diet, lifespan and
       conservation status, then its seasonal movements, especially the fall
@@ -102,7 +103,7 @@ features:
     title: "SharkoFiles: the Greenland shark, the ocean's longest-lived vertebrate"
     focus_keyword: Greenland shark
     related: [Greenland shark]
-    categories: [biology]
+    categories: [profile, biology]
     brief: >
       A species profile of the Greenland shark: range, size, diet, slow growth and
       the radiocarbon research behind estimates of its very long lifespan,
@@ -156,7 +157,7 @@ features:
     title: "SharkoFiles: the whale shark, the biggest fish in the sea"
     focus_keyword: whale shark facts
     related: [whale shark]
-    categories: [biology]
+    categories: [profile, biology]
     brief: >
       A species profile of the whale shark: size, filter feeding, range and
       seasonal gatherings (such as Ningaloo, the Yucatán and the Philippines),
@@ -207,7 +208,7 @@ features:
     title: "SharkoFiles: the great hammerhead"
     focus_keyword: great hammerhead shark
     related: [hammerhead, great hammerhead]
-    categories: [biology]
+    categories: [profile, biology]
     brief: >
       A species profile of the great hammerhead: how the cephalofoil helps it hunt
       (including stingrays), size, range and migrations, its critically endangered
