@@ -275,3 +275,32 @@ say so plainly."""
 def research_user(title: str, urls: list[str], summary: str) -> str:
     return (f"Story: {title}\nCoverage so far: {', '.join(urls[:4])}\nSummary: {summary}\n\n"
             "Find the primary source and any key facts the coverage may have gotten wrong.")
+
+
+# --------------------------------------------------------------- illustrate
+
+IMAGE_BRIEF_SYSTEM = """You are Sharkophile's photo editor. Describe ONE featured illustration for
+a shark news story, for an AI image model. Follow the house image rules exactly:
+- Editorial illustration, anatomically accurate for the species named.
+- Never: identifiable people, a re-creation of the actual incident, blood or injury,
+  logos, text, movie characters, or anything that could pass for news photography of
+  the event.
+- For bites and incidents: show the species calmly in open water, or an empty
+  coastline, not the event itself.
+- For entertainment: an evocative, generic scene, no copyrighted characters.
+Describe species, setting, light and composition in 1–3 sentences. The alt text says
+plainly what the picture shows, 125 characters or fewer, without "image of"."""
+
+IMAGE_BRIEF_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "prompt": {"type": "string"},
+        "alt_text": {"type": "string"},
+    },
+    "required": ["prompt", "alt_text"],
+    "additionalProperties": False,
+}
+
+
+def image_brief_user(title: str, excerpt: str, body_text: str) -> str:
+    return f"Headline: {title}\nSummary: {excerpt}\n\nStory:\n{body_text[:3000]}"

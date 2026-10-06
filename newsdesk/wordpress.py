@@ -204,6 +204,16 @@ class WordPress:
                               data=json.dumps(payload), timeout=90)
         return self._check(resp, "create post")
 
+    def get_post(self, post_id: int) -> dict:
+        _, data = self._get(f"/posts/{int(post_id)}", {"context": "edit"})
+        return data
+
+    def update_post(self, post_id: int, payload: dict) -> dict:
+        resp = self.http.post(self.api + f"/posts/{int(post_id)}",
+                              headers=self._headers({"Content-Type": "application/json"}),
+                              data=json.dumps(payload), timeout=90)
+        return self._check(resp, f"update post {post_id}")
+
     def attach_media(self, media_id: int, post_id: int) -> None:
         resp = self.http.post(self.api + f"/media/{media_id}",
                               headers=self._headers({"Content-Type": "application/json"}),

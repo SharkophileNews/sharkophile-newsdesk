@@ -83,6 +83,9 @@ class FakeClaude:
         elif system.startswith("You are Sharkophile's copy chief"):
             data = self.fact_responses.pop(0) if self.fact_responses else {
                 "verdict": "pass", "issues": [], "summary": "All claims supported."}
+        elif system.startswith("You are Sharkophile's photo editor"):
+            data = {"prompt": "A shortfin mako shark cruising calmly in deep blue open water, sunlight from above",
+                    "alt_text": "A shortfin mako shark swims in deep blue open water"}
         else:
             data = {"ok": True}
         return self._msg(payload, [{"type": "text", "text": json.dumps(data)}])
@@ -209,6 +212,7 @@ class FakeWordPress:
             "_genesis_title", "_genesis_description", "_newsdesk_sources", "_newsdesk_report",
             "_newsdesk_focus_keyword", "_newsdesk_run_id", "jetpack_publicize_message"]
         self.next_id = 9000
+        self.updates: list = []
 
     def handle(self, method, path, params, headers, body):
         authed = ("Authorization" in headers and not self.strip_authorization) or \
@@ -259,6 +263,21 @@ class FakeWordPress:
             media = next(x for x in self.media if x["id"] == int(m.group(1)))
             media.update(json.loads(body))
             return FakeResponse(json_data={"id": media["id"]})
+        m = re.match(r"/posts/(\d+)$", path)
+        if m:
+            post = next((p for p in self.posts if p["id"] == int(m.group(1))), None)
+            if post is None:
+                return FakeResponse(404, json_data={"code": "rest_post_invalid_id", "message": "Invalid post ID."})
+            if method == "POST":
+                upd = json.loads(body)
+                post.setdefault("meta", {}).update(upd.pop("meta", {}))
+                post.update(upd)
+                self.updates.append((post["id"], upd))
+            return FakeResponse(json_data={
+                "id": post["id"], "status": post.get("status", "draft"), "slug": post.get("slug", ""),
+                "title": {"raw": post.get("title", "")}, "content": {"raw": post.get("content", "")},
+                "excerpt": {"raw": post.get("excerpt", "")}, "featured_media": post.get("featured_media", 0),
+                "meta": post.get("meta", {})})
         return FakeResponse(404, json_data={"code": "rest_no_route", "message": path})
 
 

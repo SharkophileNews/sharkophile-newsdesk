@@ -128,6 +128,25 @@ def cmd_run(cfg, args) -> int:
     return 1 if summary.get("fatal") else 0
 
 
+def cmd_illustrate(cfg, args) -> int:
+    from .http import HttpClient
+    from .illustrate import illustrate_post
+
+    http = HttpClient()
+    failed = False
+    for post_id in args.post:
+        try:
+            r = illustrate_post(cfg, http, post_id, replace=args.replace)
+            print(f"■ {post_id} {r['title']}: {r['result']}")
+            if r.get("image_url"):
+                print(f"  {r['image_url']}\n  alt: {r['alt_text']}\n  {r['edit_link']}")
+        except Exception as exc:
+            failed = True
+            logging.getLogger("newsdesk").error("Post %s: %s", post_id, exc)
+            print(f"✖ {post_id}: {exc}")
+    return 1 if failed else 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="newsdesk", description="Sharkophile automated newsdesk")
     parser.add_argument("--config", help="path to config.yaml")
@@ -139,10 +158,14 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--url", action="append", help="write up this article URL (repeatable)")
     sub.add_parser("discover", help="list candidate stories")
     sub.add_parser("check", help="verify setup")
+    ill = sub.add_parser("illustrate", help="add (or redo) the AI featured image on existing drafts")
+    ill.add_argument("--post", type=int, action="append", required=True, help="WordPress post ID (repeatable)")
+    ill.add_argument("--replace", action="store_true", help="make a new image even if the draft has one")
     args = parser.parse_args(argv)
     _setup_logging(args.verbose)
     cfg = load_config(args.config)
-    return {"run": cmd_run, "discover": cmd_discover, "check": cmd_check}[args.command](cfg, args)
+    return {"run": cmd_run, "discover": cmd_discover, "check": cmd_check,
+            "illustrate": cmd_illustrate}[args.command](cfg, args)
 
 
 if __name__ == "__main__":

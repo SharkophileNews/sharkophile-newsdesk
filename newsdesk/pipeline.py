@@ -460,6 +460,7 @@ class Newsdesk:
             meta["_newsdesk_report"] = json.dumps({
                 "warnings": result["warnings"], "seo": report.as_dict(), "fact_check": fact,
                 "editor_notes": draft.get("editor_notes", ""), "image_prompt": draft["image"]["prompt"],
+                "image_alt": draft["image"]["alt_text"],
                 "revised": draft.get("_revised", False), "run_id": self.run_id})
         payload = {
             "title": draft["headline"], "content": content, "excerpt": draft["meta_description"],

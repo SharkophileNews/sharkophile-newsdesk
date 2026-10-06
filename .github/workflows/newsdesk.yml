@@ -11,7 +11,7 @@ on:
       command:
         description: "What to run"
         type: choice
-        options: [run, check, discover]
+        options: [run, check, discover, illustrate]
         default: run
       dry_run:
         description: "Dry run (write previews only — no WordPress drafts, no alerts)"
@@ -25,6 +25,14 @@ on:
         description: "Optional: write up this specific article URL"
         type: string
         default: ""
+      post_id:
+        description: "For illustrate: WordPress post ID(s), comma-separated"
+        type: string
+        default: ""
+      replace_image:
+        description: "For illustrate: make a new image even if the draft already has one"
+        type: boolean
+        default: false
 
 permissions:
   contents: write   # to commit state/newsdesk_state.json back after each run
@@ -72,6 +80,8 @@ jobs:
           INPUT_DRY_RUN: ${{ inputs.dry_run }}
           INPUT_MAX: ${{ inputs.max_drafts }}
           INPUT_URL: ${{ inputs.url }}
+          INPUT_POST: ${{ inputs.post_id }}
+          INPUT_REPLACE: ${{ inputs.replace_image }}
         run: |
           cmd="${INPUT_COMMAND:-run}"
           args=("$cmd")
@@ -79,6 +89,12 @@ jobs:
             [ "$INPUT_DRY_RUN" = "true" ] && args+=("--dry-run")
             [[ "$INPUT_MAX" =~ ^[0-9]+$ ]] && args+=("--max" "$INPUT_MAX")
             [[ "$INPUT_URL" =~ ^https?:// ]] && args+=("--url" "$INPUT_URL")
+          fi
+          if [ "$cmd" = "illustrate" ]; then
+            for id in ${INPUT_POST//,/ }; do
+              [[ "$id" =~ ^[0-9]+$ ]] && args+=("--post" "$id")
+            done
+            [ "$INPUT_REPLACE" = "true" ] && args+=("--replace")
           fi
           python -m newsdesk "${args[@]}"
 
