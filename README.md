@@ -96,7 +96,7 @@ When an alert arrives:
 
 1. Click **Edit in WordPress**. Read the **Newsdesk review notes** box first.
 2. Check anything flagged 🔴 or ⚠️ against the linked sources — especially numbers, names, and quotes.
-3. Look at the image: is the species right? Is it appropriate for the story? Regenerate or swap in a licensed photo if not.
+3. Look at the image: is the species right? Is it appropriate for the story? To make a new one (or add one if the draft has none), go to *Actions → Sharkophile newsdesk → Run workflow*, choose command **illustrate**, enter the post ID — the number after `post=` in the edit screen's address — and tick **replace_image** if the draft already has a picture. Or swap in a licensed photo.
 4. Optional: add *Featured*, adjust tags, edit the social message (Jetpack "Share" panel).
 5. Publish (or schedule). Delete drafts you don't want — the newsdesk won't recreate them.
 
